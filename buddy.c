@@ -17,7 +17,6 @@
 
 #include "buddy.h"
 #include "list.h"
-#include <math.h> //used to calculate log
 
 /**************************************************************************
  * Public Definitions
@@ -70,9 +69,9 @@ page_t g_pages[(1<<MAX_ORDER)/PAGE_SIZE];
 /**************************************************************************
  * Public Function Prototypes
  **************************************************************************/
-int getLog(int x){
-	return (log(x) / log(2));
-}
+// int getLog(int x){
+// 	return (log(x) / log(2));
+// }
 /**************************************************************************
  * Local Functions
  **************************************************************************/
@@ -116,6 +115,12 @@ void buddy_init()
 void *buddy_alloc(int size)
 {
 	/* TODO: IMPLEMENT THIS FUNCTION */
+	//shift bit left until we hit bit just bigger than size
+	int i;
+	for(i = 0; (1 << i) < size; i++){
+		
+	}
+	int index = i;
 	return NULL;
 }
 
