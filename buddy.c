@@ -52,6 +52,7 @@ typedef struct {
 	struct list_head list;
 	/* TODO: DECLARE NECESSARY MEMBER VARIABLES */
 	int blockOrder;
+	int free;
 } page_t;
 
 /**************************************************************************
@@ -94,6 +95,7 @@ void buddy_init()
 		/* TODO: INITIALIZE PAGE STRUCTURES */
 		INIT_LIST_HEAD(&g_pages[i].list);
 		g_pages[i].blockOrder = -1;
+		g_pages[i].free = 1;
 	}
 	g_pages[0].blockOrder = MAX_ORDER;
 
