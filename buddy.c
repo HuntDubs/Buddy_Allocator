@@ -53,6 +53,7 @@ typedef struct {
 	/* TODO: DECLARE NECESSARY MEMBER VARIABLES */
 	int blockOrder;
 	int free;
+	int index;
 } page_t;
 
 /**************************************************************************
@@ -71,14 +72,39 @@ page_t g_pages[(1<<MAX_ORDER)/PAGE_SIZE];
  * Public Function Prototypes
  **************************************************************************/
 void* findFree(int curIndex, int targetIndex){
-	if(curIndex == targetIndex && !list_empty(free_area[curIndex])){
-
-	} else if(curIndex != targetIndex && !list_empty(free_area[curIndex])){
-			list_del(free_area[curIndex]);
-
+	if(curIndex == targetIndex && !list_empty(&free_area[curIndex])){
+		page_t* left = list_entry(free_area[curIndex].next, page_t, list);
+		list_del(&(left->list));
+		return PAGE_TO_ADDR(left->index);
+	} else if(curIndex != targetIndex && !list_empty(&free_area[curIndex])){
+		int newBlockSize = (1<<(curIndex-1));
+		int leftPageIndex = -1;
+		int rightPageIndex = -1;
+		int x = 0;
+		while(x<(1<<MAX_ORDER) ) {
+			if(g_pages[x].free == 1 && leftPageIndex == -1){
+				leftPageIndex = x;
+				x = x + newBlockSize;
+			} else if (g_pages[x].free == 1){
+				rightPageIndex = x;
+				x = x + newBlockSize;
+			} else {
+				if ((1 << g_pages[x].blockOrder) > newBlockSize){
+					x = x + (1 << g_pages[x].blockOrder);
+				} else {
+					x = x + newBlockSize;
+				}
+			}
+		}
+		page_t* left = list_entry(free_area[curIndex].next, page_t, list);
+		list_del(&(left->list));
+		list_add(&g_pages[leftPageIndex].list, &free_area[curIndex-1]);
+		list_add(&g_pages[rightPageIndex].list, &free_area[curIndex-1]);
+		findFree(curIndex-1, targetIndex);
 	} else {
 			findFree(curIndex+1, targetIndex);
 	}
+	return 0;
 }
 /**************************************************************************
  * Local Functions
@@ -96,6 +122,7 @@ void buddy_init()
 		INIT_LIST_HEAD(&g_pages[i].list);
 		g_pages[i].blockOrder = -1;
 		g_pages[i].free = 1;
+		g_pages[i].index = i;
 	}
 	g_pages[0].blockOrder = MAX_ORDER;
 
@@ -127,11 +154,9 @@ void *buddy_alloc(int size)
 	/* TODO: IMPLEMENT THIS FUNCTION */
 	//shift bit left until we hit bit just bigger than size
 	int i;
-	for(i = 0; (1 << i) < size; i++){
-
-	}
+	for(i = 0; (1 << i) < size; i++){}
 	int index = i;
-	return NULL;
+	return findFree(MIN_ORDER, index);
 }
 
 /**
