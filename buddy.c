@@ -51,7 +51,7 @@
 typedef struct {
 	struct list_head list;
 	/* TODO: DECLARE NECESSARY MEMBER VARIABLES */
-	int free;
+	int blockOrder;
 } page_t;
 
 /**************************************************************************
@@ -69,9 +69,16 @@ page_t g_pages[(1<<MAX_ORDER)/PAGE_SIZE];
 /**************************************************************************
  * Public Function Prototypes
  **************************************************************************/
-// int getLog(int x){
-// 	return (log(x) / log(2));
-// }
+void* findFree(int curIndex, int targetIndex){
+	if(curIndex == targetIndex && !list_empty(free_area[curIndex])){
+
+	} else if(curIndex != targetIndex && !list_empty(free_area[curIndex])){
+			list_del(free_area[curIndex]);
+
+	} else {
+			findFree(curIndex+1, targetIndex);
+	}
+}
 /**************************************************************************
  * Local Functions
  **************************************************************************/
@@ -86,7 +93,7 @@ void buddy_init()
 	for (i = 0; i < n_pages; i++) {
 		/* TODO: INITIALIZE PAGE STRUCTURES */
 		INIT_LIST_HEAD(&g_pages[i].list);
-		g_pages[i].free = 1;
+		g_pages[i].blockOrder = -1;
 	}
 
 	/* initialize freelist */
@@ -118,7 +125,7 @@ void *buddy_alloc(int size)
 	//shift bit left until we hit bit just bigger than size
 	int i;
 	for(i = 0; (1 << i) < size; i++){
-		
+
 	}
 	int index = i;
 	return NULL;
