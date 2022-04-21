@@ -95,6 +95,7 @@ void buddy_init()
 		INIT_LIST_HEAD(&g_pages[i].list);
 		g_pages[i].blockOrder = -1;
 	}
+	g_pages[0].blockOrder = MAX_ORDER;
 
 	/* initialize freelist */
 	for (i = MIN_ORDER; i <= MAX_ORDER; i++) {
