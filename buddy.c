@@ -73,8 +73,9 @@ page_t g_pages[(1<<MAX_ORDER)/PAGE_SIZE];
  **************************************************************************/
 void* findFree(int curIndex, int targetIndex){
 	if(curIndex == targetIndex && !list_empty(&free_area[curIndex])){
-		page_t* left = list_entry(free_area[curIndex].next, page_t, list);
+		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
 		list_del(&(left->list));
+		g_pages[left->index].free = 0;
 		return PAGE_TO_ADDR(left->index);
 	} else if(curIndex != targetIndex && !list_empty(&free_area[curIndex])){
 		int newBlockSize = (1<<(curIndex-1));
@@ -86,19 +87,23 @@ void* findFree(int curIndex, int targetIndex){
 			if(g_pages[x].free == 1 && leftPageIndex == -1){
 				leftPageIndex = x;
 				x = x + (newBlockSize/PAGE_SIZE);
-			} else if (g_pages[x].free == 1){
+			} else if (g_pages[x].free == 1 && rightPageIndex == -1){
 				rightPageIndex = x;
 				x = x + (newBlockSize/PAGE_SIZE);
-			} else {
+			} else if (leftPageIndex == -1 || rightPageIndex == -1){
 				if ((1 << g_pages[x].blockOrder) > newBlockSize){
 					x = x + (1 << g_pages[x].blockOrder);
 				} else {
 					x = x + (newBlockSize/PAGE_SIZE);
 				}
+			} else {
+				break;
 			}
 		}
-		page_t* left = list_entry(free_area[curIndex].next, page_t, list);
+		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
 		list_del(&(left->list));
+		g_pages[leftPageIndex].blockOrder = curIndex-1;
+		g_pages[rightPageIndex].blockOrder = curIndex-1;
 		list_add(&g_pages[leftPageIndex].list, &free_area[curIndex-1]);
 		list_add(&g_pages[rightPageIndex].list, &free_area[curIndex-1]);
 		findFree(curIndex-1, targetIndex);
