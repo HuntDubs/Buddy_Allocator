@@ -68,6 +68,8 @@ char g_memory[1<<MAX_ORDER];
 /* page structures */
 page_t g_pages[(1<<MAX_ORDER)/PAGE_SIZE];
 
+void* allocAddr;
+
 /**************************************************************************
  * Public Function Prototypes
  **************************************************************************/
@@ -76,7 +78,8 @@ void* findFree(int curIndex, int targetIndex){
 		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
 		list_del(&(left->list));
 		g_pages[left->index].free = 0;
-		return PAGE_TO_ADDR(left->index);
+		allocAddr = PAGE_TO_ADDR(left->index);
+		// return PAGE_TO_ADDR(left->index);
 	} else if(curIndex != targetIndex && !list_empty(&free_area[curIndex])){
 		int newBlockSize = (1<<(curIndex-1));
 		int leftPageIndex = -1;
@@ -112,6 +115,8 @@ void* findFree(int curIndex, int targetIndex){
 	}
 	return 0;
 }
+
+
 /**************************************************************************
  * Local Functions
  **************************************************************************/
@@ -162,7 +167,8 @@ void *buddy_alloc(int size)
 	int i;
 	for(i = 0; (1 << i) < size; i++){}
 	int index = i;
-	return findFree(MIN_ORDER, index);
+	findFree(MIN_ORDER, index);
+	return allocAddr;
 }
 
 /**
