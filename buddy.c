@@ -80,19 +80,20 @@ void* findFree(int curIndex, int targetIndex){
 		int newBlockSize = (1<<(curIndex-1));
 		int leftPageIndex = -1;
 		int rightPageIndex = -1;
+		int n_pages = (1<<MAX_ORDER) / PAGE_SIZE;
 		int x = 0;
-		while(x<(1<<MAX_ORDER) ) {
+		while(x<n_pages ) {
 			if(g_pages[x].free == 1 && leftPageIndex == -1){
 				leftPageIndex = x;
-				x = x + newBlockSize;
+				x = x + (newBlockSize/PAGE_SIZE);
 			} else if (g_pages[x].free == 1){
 				rightPageIndex = x;
-				x = x + newBlockSize;
+				x = x + (newBlockSize/PAGE_SIZE);
 			} else {
 				if ((1 << g_pages[x].blockOrder) > newBlockSize){
 					x = x + (1 << g_pages[x].blockOrder);
 				} else {
-					x = x + newBlockSize;
+					x = x + (newBlockSize/PAGE_SIZE);
 				}
 			}
 		}
