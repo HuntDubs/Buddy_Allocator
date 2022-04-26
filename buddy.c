@@ -81,29 +81,13 @@ void* findFree(int curIndex, int targetIndex){
 		allocAddr = PAGE_TO_ADDR(left->index);
 		// return PAGE_TO_ADDR(left->index);
 	} else if(curIndex > targetIndex && !list_empty(&free_area[curIndex])){
-		int newBlockSize = (1<<(curIndex-1));
 		int leftPageIndex = -1;
 		int rightPageIndex = -1;
-		int n_pages = (1<<MAX_ORDER) / PAGE_SIZE;
-		int x = 0;
-		while(x<n_pages ) {
-			if(g_pages[x].free == 1 && leftPageIndex == -1){
-				leftPageIndex = x;
-				x = x + (newBlockSize/PAGE_SIZE);
-			} else if (g_pages[x].free == 1 && rightPageIndex == -1){
-				rightPageIndex = x;
-				x = x + (newBlockSize/PAGE_SIZE);
-			} else if (leftPageIndex == -1 || rightPageIndex == -1){
-				if ((1 << g_pages[x].blockOrder) > newBlockSize){
-					x = x + ((1 << g_pages[x].blockOrder)/PAGE_SIZE);
-				} else {
-					x = x + (newBlockSize/PAGE_SIZE);
-				}
-			} else {
-				break;
-			}
-		}
 		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
+
+		leftPageIndex = left->index;
+		rightPageIndex = ADDR_TO_PAGE(BUDDY_ADDR(PAGE_TO_ADDR(leftPageIndex), ((left->blockOrder)-1)));
+
 		list_del(&(left->list));
 		g_pages[leftPageIndex].blockOrder = curIndex-1;
 		g_pages[rightPageIndex].blockOrder = curIndex-1;
@@ -211,7 +195,7 @@ void buddy_free(void *addr)
 	}
 
 	pageToFree->blockOrder = i;
-	// pageToFree->free = 1;
+	pageToFree->free = 1;
 	list_add(&pageToFree->list, &free_area[i]);
 
 }
