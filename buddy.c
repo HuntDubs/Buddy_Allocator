@@ -80,7 +80,7 @@ void* findFree(int curIndex, int targetIndex){
 		g_pages[left->index].free = 0;
 		allocAddr = PAGE_TO_ADDR(left->index);
 		// return PAGE_TO_ADDR(left->index);
-	} else if(curIndex != targetIndex && !list_empty(&free_area[curIndex])){
+	} else if(curIndex > targetIndex && !list_empty(&free_area[curIndex])){
 		int newBlockSize = (1<<(curIndex-1));
 		int leftPageIndex = -1;
 		int rightPageIndex = -1;
@@ -95,7 +95,7 @@ void* findFree(int curIndex, int targetIndex){
 				x = x + (newBlockSize/PAGE_SIZE);
 			} else if (leftPageIndex == -1 || rightPageIndex == -1){
 				if ((1 << g_pages[x].blockOrder) > newBlockSize){
-					x = x + (1 << g_pages[x].blockOrder);
+					x = x + ((1 << g_pages[x].blockOrder)/PAGE_SIZE);
 				} else {
 					x = x + (newBlockSize/PAGE_SIZE);
 				}
