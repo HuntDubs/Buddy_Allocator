@@ -182,52 +182,41 @@ void *buddy_alloc(int size)
  */
 void buddy_free(void *addr)
 {
-	int index = ADDR_TO_PAGE(addr);
+	page_t* pageToFree = &g_pages[ADDR_TO_PAGE(addr)];
+	int order = pageToFree->blockOrder;
 
-	int order = g_pages[index].blockOrder;
+	int i;
 
-	page_t* pageToFree = &g_pages[index];
+	for(i = order; i < MAX_ORDER; i++){
+		page_t* buddy = &g_pages[ADDR_TO_PAGE(BUDDY_ADDR(PAGE_TO_ADDR(pageToFree->index), i))];
+		int buddyFound = 0;
 
-	int buddyFound = 0;
-
-	while((order < MAX_ORDER) && (buddyFound == 0)){
-		// if(order == MAX_ORDER){
-		// 	pageToFree->blockOrder = order;
-		// 	pageToFree->free = 1;
-		// 	list_add(&pageToFree->list, &free_area[order]);
-		// }
-		page_t* buddy = &g_pages[ADDR_TO_PAGE(BUDDY_ADDR(PAGE_TO_ADDR(pageToFree->index), order))];
 		struct list_head* counter;
 
-		list_for_each(counter, &free_area[order]){
+		list_for_each(counter, &free_area[i]){
 			if(buddy == list_entry(counter, page_t, list)){
 				buddyFound = 1;
-
 			}
 		}
+
 		if(buddyFound == 0){
-				pageToFree->blockOrder = order;
-				pageToFree->free = 1;
-				list_add(&pageToFree->list, &free_area[order]);
-				break;
-		} else {
-				list_del_init(&buddy->list);
-				g_pages[buddy->index].free = 1;
-				g_pages[buddy->index].blockOrder = order;
-				if(buddy->index < pageToFree->index){
-					pageToFree = buddy;
-				}
-				order++;
-				pageToFree->blockOrder = order;
-				pageToFree->free = 1;
-				list_add(&pageToFree->list, &free_area[order]);
-				buddyFound = 0;
+			break;
+		}
+
+		list_del_init(&buddy->list);
+
+		if(pageToFree->index > buddy->index){
+			pageToFree = buddy;
 		}
 	}
-	// pageToFree->blockOrder = order;
+
+	pageToFree->blockOrder = i;
 	// pageToFree->free = 1;
-	// list_add(&pageToFree->list, &free_area[order]);
+	list_add(&pageToFree->list, &free_area[i]);
+
 }
+
+
 
 /**
  * Print the buddy system status---order oriented
