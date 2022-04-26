@@ -76,6 +76,12 @@ void* allocAddr;
 void* findFree(int curIndex, int targetIndex){
 	if(curIndex == targetIndex && !list_empty(&free_area[curIndex])){
 		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
+		struct list_head* counter;
+		list_for_each(counter, &free_area[curIndex]){
+			if(  (list_entry(counter, page_t, list)->index) < (left->index) ){
+				left = list_entry(counter, page_t, list);
+			}
+		}
 		list_del(&(left->list));
 		g_pages[left->index].free = 0;
 		allocAddr = PAGE_TO_ADDR(left->index);
@@ -84,7 +90,12 @@ void* findFree(int curIndex, int targetIndex){
 		int leftPageIndex = -1;
 		int rightPageIndex = -1;
 		page_t* left = list_entry(free_area[curIndex].prev, page_t, list);
-
+		struct list_head* counter;
+		list_for_each(counter, &free_area[curIndex]){
+			if(  (list_entry(counter, page_t, list)->index) < (left->index) ){
+				left = list_entry(counter, page_t, list);
+			}
+		}
 		leftPageIndex = left->index;
 		rightPageIndex = ADDR_TO_PAGE(BUDDY_ADDR(PAGE_TO_ADDR(leftPageIndex), ((left->blockOrder)-1)));
 
